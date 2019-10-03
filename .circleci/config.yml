@@ -1,40 +1,24 @@
-version: 2
-jobs:
-  one:
-    docker:
-      - image: circleci/ruby:2.4.1
-    steps:
-      - checkout
-      - run: echo "A first hello"
-      - run: mkdir -p my_workspace
-      - run: echo "Trying out workspaces" > my_workspace/echo-output
-      - persist_to_workspace:
-          # 絶対パス、または working_directory からの相対パスにする必要があります
-          root: my_workspace
-          # root からの相対パスにする必要があります
-          paths:
-            - echo-output      
-  two:
-    docker:
-      - image: circleci/ruby:2.4.1
-    steps:
-      - checkout
-      - run: echo "A more familiar hi"  
-      - attach_workspace:
-          # 絶対パス、または working_directory からの相対パスにする必要があります
-          at: my_workspace
+# ...
+# << build、test1、test2、deploy ジョブを含むビルドの設定 >>
+# ...
 
-      - run: |
-          if [[ $(cat my_workspace/echo-output) == "Trying out workspaces" ]]; then
-            echo "It worked!";
-          else
-            echo "Nope!"; exit 1
-          fi
 workflows:
   version: 2
-  one_and_two:
+  build-test-and-approval-deploy:
     jobs:
-      - one
-      - two:
+      - build  # コードをビルドする任意のジョブ
+      - test1: # 1 つめの test を実行する任意のジョブ
+          requires: # build ジョブが完了次第 test1 を実行します
+            - build
+      - test2: # 2 つめの test を実行する任意のジョブ
+          requires: # test2 は test1 が完了してからの実行となります
+            - test1
+      - hold: # <<< ジョブの続きを実行するには CircleCI の Web ページ上で手動で承認する必要があります。
+          type: approval # <<< このキーを使うと Workflow を「待機」状態にします
+          requires: # test2 が完了すると hold ジョブに処理が移ります
+           - test2
+      # hold ジョブにおいて承認すると、hold ジョブの完了待ちとなっていた残りのジョブが実行されます
+      # この例では、ユーザーの手動操作が deploy ジョブの実行トリガーとなります
+      - deploy:
           requires:
-            - one
+            - hold

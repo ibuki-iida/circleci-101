@@ -10,7 +10,7 @@ workflows:
           requires:
             - test1
       - hold:
-          type:approval
+          type: approval
           requires:
            - test2
       - deploy:

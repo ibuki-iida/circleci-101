@@ -1,8 +1,18 @@
-version: 2
+version: 2.0
 jobs:
-  build:
-    docker: # Executor タイプです。他に machine、macOS という実行タイプを指定できます
-      - image: circleci/node:4.8.2 # プライマリコンテナです。このなかでジョブコマンドが実行されます
-    steps:
-      - checkout # プロジェクトのディレクトリにあるコードをチェックアウトします
-      - run: echo "hello world" # 「echo」コマンドを実行します
+ build:
+   docker:
+     - image: alpine:3.7
+   steps:
+     - checkout
+     - run:
+         name: 最初の一歩
+         command: |
+           echo 'Hello World!'
+           echo 'This is the delivery pipeline'
+     - run: sleep 15
+     - run:
+         name: コードの取得
+         command: |
+           ls -al
+           echo '^^^That should look familiar^^^'

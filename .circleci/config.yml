@@ -6,13 +6,6 @@ jobs:
    steps:
      - checkout
      - run:
-         name: 最初の一歩
-         command: |
            echo 'Hello World!'
            echo 'This is the delivery pipeline'
-     - run: sleep 15
-     - run:
-         name: コードの取得
-         command: |
-           ls -al
-           echo '^^^That should look familiar^^^'
+     

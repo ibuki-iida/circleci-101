@@ -1,18 +1,51 @@
+# ここでは再利用可能な Executor を有効にするため CircleCI 2.1 を使用しています。
+# これによりジョブ間で再利用する Docker イメージを定義できるようになります。　
+# 詳細は https://circleci.com/docs/2.0/reusing-config/#authoring-reusable-executors
+
+version: 2.1
+
+executors:
+  my-executor:
+    docker:
+      - image: buildpack-deps:jessie
+    working_directory: /tmp
+
+jobs:
+  flow:
+    executor: my-executor
+    steps:
+      - run: mkdir -p workspace
+      - run: echo "Hello, world!" > workspace/echo-output
+
+      # 後に続くジョブで利用できるように Workspace に指定のパス（workspace/echo-output）を保存します。
+      - persist_to_workspace:
+          # working_directory からの相対パスか絶対パスを指定します。
+          # これは Workspace のルートディレクトリとなるコンテナ内のディレクトリです
+          root: workspace
+          # root からの相対パスを指定します
+          paths:
+            - echo-output
+
+  downstream:
+    executor: my-executor
+    steps:
+      - attach_workspace:
+          # working_directory からの相対パスか絶対パスを指定します
+          at: /tmp/workspace
+
+      - run: |
+          if [[ `cat /tmp/workspace/echo-output` == "Hello, world!" ]]; then
+            echo "成功しました！";
+          else
+            echo "失敗しました！"; exit 1
+          fi
+
 workflows:
-  version: 2
-  build-test-and-approval-deploy:
+  version: 2.1
+
+  btd:
     jobs:
-      - build
-      - test1:
+      - flow
+      - downstream:
           requires:
-            - build
-      - test2:
-          requires:
-            - test1
-      - hold:
-          type: approval
-          requires:
-           - test2
-      - deploy:
-          requires:
-            - hold
+            - flow

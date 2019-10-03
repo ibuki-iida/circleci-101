@@ -1,24 +1,18 @@
-# ...
-# << build、test1、test2、deploy ジョブを含むビルドの設定 >>
-# ...
-
 workflows:
   version: 2
   build-test-and-approval-deploy:
     jobs:
-      - build  # コードをビルドする任意のジョブ
-      - test1: # 1 つめの test を実行する任意のジョブ
-          requires: # build ジョブが完了次第 test1 を実行します
+      - build
+      - test1:
+          requires:
             - build
-      - test2: # 2 つめの test を実行する任意のジョブ
-          requires: # test2 は test1 が完了してからの実行となります
+      - test2:
+          requires:
             - test1
-      - hold: # <<< ジョブの続きを実行するには CircleCI の Web ページ上で手動で承認する必要があります。
-          type: approval # <<< このキーを使うと Workflow を「待機」状態にします
-          requires: # test2 が完了すると hold ジョブに処理が移ります
+      - hold:
+          type:approval
+          requires:
            - test2
-      # hold ジョブにおいて承認すると、hold ジョブの完了待ちとなっていた残りのジョブが実行されます
-      # この例では、ユーザーの手動操作が deploy ジョブの実行トリガーとなります
       - deploy:
           requires:
             - hold
